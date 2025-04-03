@@ -1112,6 +1112,101 @@ class SysLog():
         print("  " + k + v)
     self.bdata = env
     return env
+  
+def main():
+  if len(sys.argv) > 1 and sys.argv[1] == 'syslog':
+    gw = gateway.Gateway(timeout = 4, detect_ssh = False)
+    if gw.status < 1:
+      die("Xiaomi Mi Wi-Fi device not found (IP: {})".format(gw.ip_addr))
+    slog = SysLog(gw, timeout = 22, verbose = 1, infolevel = 2)
+    sys.exit(0)
+  
+  fn_dir    = ''
+  fn_old    = 'full_info_old.txt'
+  fn_local  = 'full_info.txt'
+  fn_remote = '/outdir/full_info.txt'
+
+  if os.path.exists(fn_local): 
+    if os.path.exists(fn_old):
+      os.remove(fn_old)
+    os.rename(fn_local, fn_old)
+
+  info = DevInfo(verbose = 1, infolevel = 99)
+
+  file = open(fn_local, "w")
+  file.write("_MTD_partitions_:\n")
+  for i, part in enumerate(info.partlist):
+    name = part['name']
+    addr = "%08X" % part['addr']
+    size = "%08X" % part['size']
+    ro = "?"
+    if 'ro' in part:
+      ro = '1' if part['ro'] else '0'
+    file.write(f'  {"%2d" % i} > addr: {addr}  size: {size}  ro: {ro}  name: "{name}" \n')
+  file.write("\n")  
+  file.write("_Base_info_:\n")
+  file.write('  Linux stamp: {}\n'.format(info.info.linux_stamp))
+  file.write('  Linux version: {}\n'.format(info.info.linux_ver))
+  file.write('  CPU arch: {}\n'.format(info.info.cpu_arch))
+  file.write('  CPU name: {}\n'.format(info.info.cpu_name))
+  file.write('  SPI rom: {}\n'.format(info.info.spi_rom))
+  file.write("\n")  
+  file.write("_Kernel_command_line_:\n")
+  if (info.kcmdline):
+    for i, (k, v) in enumerate(info.kcmdline.items()):
+      v = '' if (v is None) else ('=' + v)
+      file.write("  " + k + v + '\n')
+  file.write("\n")  
+  file.write("_NVRam_params_:\n")
+  if (info.nvram):
+    for i, (k, v) in enumerate(info.nvram.items()):
+      v = '' if (v is None) else ('=' + v)
+      file.write("  " + k + v + '\n')
+  file.write("\n")  
+  file.write("_RootFS_current_:\n")
+  file.write('  num = {}\n'.format(info.rootfs.num))
+  file.write('  mtd_num = {}\n'.format(info.rootfs.mtd_num))
+  file.write('  mtd_dev = "{}"\n'.format(info.rootfs.mtd_dev))
+  file.write('  partition = "{}"\n'.format(info.rootfs.partition))
+  file.write("\n")
+  #file.write('Board name: "{}" \n\n'.format(info.board_name))
+  #file.write('Model: "{}" \n\n'.format(info.model))
+  file.write("_Version_info_:\n")
+  file.write("  UBoot: {} \n".format(info.ver.uboot1))
+  file.write("  OpenWrt: {} \n".format(info.ver.openwrt))
+  file.write("  Firmware: {} \n".format(info.ver.fw))
+  file.write("  Channel: {} \n".format(info.ver.channel))
+  file.write("  BuildTime: {} \n".format(info.ver.buildtime))
+  file.write("  Hardware: {} \n".format(info.ver.hardware))
+  file.write("  UBoot(2): {} \n".format(info.ver.uboot2))
+  file.write("\n")
+  file.write("_Bootloader_info_:\n")
+  for i, bl in enumerate(info.bl_list):
+    p = info.get_part_num(bl.addr, '#')
+    name = info.partlist[p]['name'] if p >= 0 else "<unknown_name>"
+    file.write("  {}:\n".format(name))
+    file.write("    addr: 0x%08X \n" % (bl.addr if bl.addr else 0))
+    file.write("    size: 0x%08X \n" % (len(bl.img) if bl.img else 0))
+    file.write("    image size: {} bytes \n".format(bl.img_size))
+    file.write("    type: {} \n".format(bl.type))
+  file.write("\n")  
+  file.write("_ENV_info_:\n")
+  for i, env in enumerate(info.env_list):
+    p = info.get_part_num(env.addr, '#')
+    name = info.partlist[p]['name'] if p >= 0 else "<unknown_name>"
+    file.write("  {}:\n".format(name))
+    file.write("    addr: 0x%08X \n" % (env.addr if env.addr else 0))
+    file.write("    size: 0x%08X \n" % (env.max_size if env.max_size else 0))
+    file.write("    len: %d bytes \n" % env.len)
+    file.write("    prefix: {} \n".format(env.data[env.offset:env.offset+4] if env.data else None))
+    if env.var:
+      for i, (k, v) in enumerate(env.var.items()):
+        v = '' if (v is None) else ('=' + v)
+        file.write("      " + k + v + '\n')
+  file.write("\n")  
+  file.close()  
+    
+  print("Full device information saved to file {}".format(fn_local))
 
 
 if __name__ == "__main__":

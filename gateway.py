@@ -39,22 +39,23 @@ class ExploitNotWorked(Exception): pass
 
 
 def die(*args):
-  err = 1
-  prefix = "ERROR: "
-  msg = "<undefined>"
-  if len(args) > 0:
-    if isinstance(args[0], int):
-      err = args[0]
-    else:
-      msg = args[0]
-  if (err == 0):
-    prefix = ""
-  if len(args) > 1:
-    msg = args[1]
-  print(" ")
-  print(prefix + msg)
-  print(" ")
-  sys.exit(err)
+  raise RuntimeError(*args)
+  # err = 1
+  # prefix = "ERROR: "
+  # msg = "<undefined>"
+  # if len(args) > 0:
+  #   if isinstance(args[0], int):
+  #     err = args[0]
+  #   else:
+  #     msg = args[0]
+  # if (err == 0):
+  #   prefix = ""
+  # if len(args) > 1:
+  #   msg = args[1]
+  # print(" ")
+  # print(prefix + msg)
+  # print(" ")
+  # sys.exit(err)
 
 
 class Gateway():
@@ -1063,6 +1064,12 @@ def create_gateway(timeout = 4, die_if_sshOk = True, die_if_ftpOk = True, web_lo
     return gw
 
 #===============================================================================
+def main(ip_addr):
+ if len(ip_addr) > 1:
+    gw = Gateway(detect_device = False, detect_ssh = False)
+    gw.ip_addr = ip_addr
+    print("Device IP-address changed to {}".format(ip_addr))
+
 if __name__ == "__main__":
   if len(sys.argv) > 1:
     ip_addr = sys.argv[1]

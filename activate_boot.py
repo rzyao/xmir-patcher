@@ -83,7 +83,7 @@ def uboot_boot_change(gw, fw_num):
   return gw.run_cmd(';'.join(cmd))
 
 
-if __name__ == "__main__":
+def main():
   gw = gateway.Gateway()
   dev = read_info.DevInfo(verbose = 0, infolevel = 1)
   dev.get_bootloader()
@@ -145,7 +145,8 @@ if __name__ == "__main__":
   uboot_boot_change(gw, fw_num)
   print('Ready! Boot from partition "kernel{}" activated.'.format(fw_num))
 
-
+if __name__ == "__main__":
+    main()
 '''
 /*** Algorithm from stock uboot: ***/
 

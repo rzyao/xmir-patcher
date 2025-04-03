@@ -26,9 +26,7 @@ UBI_MAGIC    = b"UBI#"
 UBIv1_MAGIC  = UBI_MAGIC + b"\x01\x00\x00\x00"
 
 
-gw = gateway.Gateway()
-if not gw.device_name:
-    die(f"Xiaomi Mi Wi-Fi device not found! (IP: {gw.ip_addr})")
+
 
 
 class FwError(Exception): pass
@@ -1145,21 +1143,25 @@ class XqFlash():
 
 # =====================================================================
 
-xf = XqFlash()
+def main():
+    gw = gateway.Gateway()
+    if not gw.device_name:
+        die(f"Xiaomi Mi Wi-Fi device not found! (IP: {gw.ip_addr})")
+    xf = XqFlash()
 
-xf.found_all_images()
-xf.parse_all_images()
+    xf.found_all_images()
+    xf.parse_all_images()
 
-print(f"fw_img: {xf.fw_img.data_size // 1024} KiB |",
-      f"kernel: {xf.kernel.data_size // 1024} KiB |",
-      f"rootfs: {xf.rootfs.data_size // 1024} KiB ")
+    print(f"fw_img: {xf.fw_img.data_size // 1024} KiB |",
+        f"kernel: {xf.kernel.data_size // 1024} KiB |",
+        f"rootfs: {xf.rootfs.data_size // 1024} KiB ")
 
-xf.prepare_data()
+    xf.prepare_data()
 
-print(f"fw_img: {xf.fw_img.data_size // 1024} KiB |",
-      f"kernel: {xf.kernel.data_size // 1024} KiB |",
-      f"rootfs: {xf.rootfs.data_size // 1024} KiB")
+    print(f"fw_img: {xf.fw_img.data_size // 1024} KiB |",
+        f"kernel: {xf.kernel.data_size // 1024} KiB |",
+        f"rootfs: {xf.rootfs.data_size // 1024} KiB")
 
-xf.flash()
+    xf.flash()
 
 
